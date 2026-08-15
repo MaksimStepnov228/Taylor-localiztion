@@ -114,7 +114,7 @@ for n in [0, 2, 6]:
     for rho in [1.5, 3.0]:
         lo, hi = band_lagrange(n, rho)
         for target, lab in [(lo, "lo"), (hi, "hi")]:
-            # target crossing point
+            # extremal hinge: kink exactly at the target crossing point
             if lab == "lo":
                 gp = np.where(grid > target, 1.0, rho)
             else:
@@ -164,3 +164,68 @@ ax.set_xlabel("order $n$"); ax.set_ylabel(r"normalized position $\theta$")
 ax.set_title("Admissible region for the intermediate point")
 ax.set_ylim(0, 0.85); ax.legend(frameon=False, fontsize=8)
 fig.tight_layout(); fig.savefig("fig1_headline.pdf"); fig.savefig("fig1_headline.png"); plt.close(fig)
+ 
+# Figure 2
+fig, ax = plt.subplots(figsize=(4.2, 4.0))
+act, pred = [], []
+for (n, rho, t, lo, hi) in records:
+    anchor = 1 / (n + 2)
+    act.append(abs(t - anchor)); pred.append(max(hi - anchor, anchor - lo))
+ax.plot(pred, act, ".", ms=2.2, color=BLUE, alpha=.45)
+m = max(pred) * 1.02
+ax.plot([0, m], [0, m], color=RED, lw=1.2)
+ax.set_xlabel("predicted bound on $|\\theta-1/(n+2)|$")
+ax.set_ylabel("realized $|\\theta-1/(n+2)|$")
+ax.set_title("Sharpness"); ax.set_xlim(0, m); ax.set_ylim(0, m)
+fig.tight_layout(); fig.savefig("fig2_sharpness.pdf"); fig.savefig("fig2_sharpness.png"); plt.close(fig)
+ 
+# Figure 3
+rhos = np.linspace(1.0, 12, 300)
+fig, ax = plt.subplots(figsize=(5.0, 3.2))
+ax.plot(rhos, [band_lagrange(0, r)[1] for r in rhos], color=BLUE, lw=2.4,
+        label="general theorem at $n=0$")
+ax.plot(rhos, np.sqrt(rhos) / (1 + np.sqrt(rhos)), "--", color=RED, lw=1.4,
+        label=r"MVT closed form $\sqrt{\rho}/(1+\sqrt{\rho})$")
+ax.plot(rhos, 0.5 + (rhos - 1) / 8, ":", color=GREY, lw=1.4,
+        label=r"first-order (MAD) bound $1/2+(\rho-1)/8$")
+ax.set_xlabel(r"$\rho=\Lambda/\lambda$"); ax.set_ylabel(r"$\theta_+$")
+ax.set_title("Recovery of the mean value theorem case")
+ax.legend(frameon=False, fontsize=8)
+fig.tight_layout(); fig.savefig("fig3_recovery.pdf"); fig.savefig("fig3_recovery.png"); plt.close(fig)
+ 
+# Figure 4
+alphas = np.linspace(0.4, 4.0, 34); betas = np.linspace(0.4, 4.0, 34)
+fig, axes = plt.subplots(1, 3, figsize=(9.4, 3.2))
+for ax, extra in zip(axes, [0, 1, 3]):
+    Z = np.zeros((len(betas), len(alphas)))
+    for i, b in enumerate(betas):
+        for j, a in enumerate(alphas):
+            Z[i, j] = a / (a + b + extra)
+    im = ax.pcolormesh(alphas, betas, Z, cmap="viridis", shading="auto")
+    cs = ax.contour(alphas, betas, Z, levels=[.1,.2,.3,.4,.5,.6,.7], colors="w", linewidths=.6)
+    ax.clabel(cs, fontsize=6, fmt="%.1f")
+    ax.set_title(rf"$n={extra}$", fontsize=9)
+    ax.set_xlabel(r"$\alpha$")
+axes[0].set_ylabel(r"$\beta$")
+fig.colorbar(im, ax=axes, shrink=.9, label="anchor  " + r"$\alpha/(\alpha+\beta+n)$")
+fig.savefig("fig4_weighted.pdf", bbox_inches="tight")
+fig.savefig("fig4_weighted.png", bbox_inches="tight"); plt.close(fig)
+ 
+# Figure 6
+fig, ax = plt.subplots(figsize=(5.2, 3.3))
+ns2 = np.arange(0, 61)
+for rho, col in [(1.2, "#8fb8de"), (2.0, BLUE), (5.0, "#0d2b45")]:
+    w = [(n + 2) * (band_lagrange(n, rho)[1] - band_lagrange(n, rho)[0]) for n in ns2]
+    ax.plot(ns2, w, color=col, lw=1.6, label=rf"$\rho={rho}$")
+    xlo = brentq(lambda x: Psi_inf(x) - rho, 1e-9, 1 - 1e-12)
+    xhi = brentq(lambda x: Psi_inf(x) - 1 / rho, 1 + 1e-12, 80)
+    ax.axhline(xhi - xlo, color=col, ls=":", lw=1.0)
+ax.set_xlabel("order $n$")
+ax.set_ylabel(r"rescaled band width $(n+2)(\theta_+-\theta_-)$")
+ax.set_title("Relative localization degrades with $n$")
+ax.legend(frameon=False, fontsize=8)
+fig.tight_layout(); fig.savefig("fig6_relative.pdf"); fig.savefig("fig6_relative.png"); plt.close(fig)
+ 
+print("=" * 68)
+print("figures written")
+ 
