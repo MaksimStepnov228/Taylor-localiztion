@@ -10,4 +10,6 @@ Writing on this paper started 10.07.2026. It is not finished yet, but should be 
 
 `localiztion.py` is also unfinished.
 
+Update: 'lolcalization.py' is finished as of 15.08.2026.
+
 Excpected finish date: 01.09.2026
